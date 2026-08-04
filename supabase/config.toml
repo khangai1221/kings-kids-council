@@ -1,0 +1,55 @@
+project_id = "ym-student-council-portal"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[storage]
+enabled = true
+file_size_limit = "10MiB"
+
+[inbucket]
+enabled = false
+
+[realtime]
+enabled = true
+
+# ------------------------------------------------------------------------
+# Supabase's own GoTrue auth service is kept enabled only so the third-party
+# JWT verification subsystem runs. Clerk is the ONLY identity provider — do
+# not enable email/password or OAuth sign-in here, and never point the app
+# at a Supabase Auth login page.
+# ------------------------------------------------------------------------
+[auth]
+enabled = true
+site_url = "env(NEXT_PUBLIC_APP_URL)"
+additional_redirect_urls = []
+jwt_expiry = 3600
+enable_signup = false
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = false
+enable_confirmations = false
+
+# Local dev: run `npx clerk-sdk-node` no — instead paste your Clerk
+# instance's Frontend API domain here (Clerk Dashboard -> Configure ->
+# Integrations -> Supabase). This must also be added as a Third-Party Auth
+# integration in the *hosted* Supabase dashboard for staging/production.
+[auth.third_party.clerk]
+enabled = true
+domain = "env(CLERK_FRONTEND_API_DOMAIN)"
+
+[edge_runtime]
+enabled = false

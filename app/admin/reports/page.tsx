@@ -1,5 +1,6 @@
 import { requireCapability } from "@/lib/auth/require";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getSiteSettings } from "@/lib/settings/service";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,8 @@ export const metadata = { title: "Reports" };
 export default async function AdminReportsPage() {
   await requireCapability("reports.view");
   const supabase = createSupabaseServerClient();
+  const settings = await getSiteSettings();
+  const threshold = settings.min_reporting_privacy_threshold;
 
   const [{ data: submissions }, { data: profiles }, { data: gradeLevels }] = await Promise.all([
     supabase.from("application_submissions").select("status"),
@@ -28,7 +31,24 @@ export default async function AdminReportsPage() {
   for (const profile of profiles ?? []) {
     if (profile.grade_level_id) gradeCounts.set(profile.grade_level_id, (gradeCounts.get(profile.grade_level_id) ?? 0) + 1);
   }
-  const gradeData = (gradeLevels ?? []).map((grade) => ({ label: grade.label, value: gradeCounts.get(grade.id) ?? 0 }));
+
+  // Small-cell suppression: a grade with fewer students than the configured
+  // privacy threshold could let someone identify individuals from the count
+  // alone, so those grades are combined into one "Other" bucket instead of
+  // shown individually (site_settings.min_reporting_privacy_threshold).
+  const visibleGrades: { label: string; value: number }[] = [];
+  let suppressedCount = 0;
+  for (const grade of gradeLevels ?? []) {
+    const count = gradeCounts.get(grade.id) ?? 0;
+    if (count > 0 && count < threshold) {
+      suppressedCount += count;
+    } else {
+      visibleGrades.push({ label: grade.label, value: count });
+    }
+  }
+  const gradeData = suppressedCount > 0
+    ? [...visibleGrades, { label: `Other (combined, <${threshold} per group)`, value: suppressedCount }]
+    : visibleGrades;
 
   return (
     <div className="space-y-6">

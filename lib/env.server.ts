@@ -17,6 +17,8 @@ const serverEnvSchema = z.object({
   FIREBASE_PROJECT_ID: z.string().optional().default(""),
   FIREBASE_CLIENT_EMAIL: z.string().optional().default(""),
   FIREBASE_PRIVATE_KEY: z.string().optional().default(""),
+  RESEND_API_KEY: z.string().optional().default(""),
+  EMAIL_FROM: z.string().optional().default("YM Student Council <onboarding@resend.dev>"),
 });
 
 function loadServerEnv() {
@@ -29,6 +31,8 @@ function loadServerEnv() {
     FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
     FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
     FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    EMAIL_FROM: process.env.EMAIL_FROM,
   });
 
   if (!parsed.success) {
@@ -52,3 +56,5 @@ export const env = {
 export const isFirebaseAdminConfigured = Boolean(
   serverEnv.FIREBASE_PROJECT_ID && serverEnv.FIREBASE_CLIENT_EMAIL && serverEnv.FIREBASE_PRIVATE_KEY,
 );
+
+export const isEmailConfigured = Boolean(serverEnv.RESEND_API_KEY);

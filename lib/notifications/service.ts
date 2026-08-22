@@ -1,6 +1,7 @@
 import "server-only";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getFirebaseAdminMessaging } from "@/lib/firebase/admin";
+import { sendEmail } from "@/lib/email/client";
 import type { NotificationType } from "@/lib/constants";
 
 export interface CreateNotificationParams {
@@ -51,9 +52,31 @@ export async function createNotification(params: CreateNotificationParams): Prom
 
   if (!preferences || preferences.push_enabled) {
     await dispatchPush(params.userId, notificationId, params);
+    await dispatchEmail(params.userId, params);
   } else {
     await supabase.rpc("mark_notification_delivery", { p_id: notificationId, p_status: "skipped" });
   }
+}
+
+/** Mirrors push delivery: fires whenever push is enabled, using the same on/off switch. */
+async function dispatchEmail(userId: string, params: CreateNotificationParams): Promise<void> {
+  const supabase = createSupabaseAdminClient();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("school_email")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!profile?.school_email) return;
+
+  await sendEmail({
+    to: profile.school_email,
+    subject: params.title,
+    title: params.title,
+    body: params.message,
+    link: params.link,
+  });
 }
 
 async function dispatchPush(userId: string, notificationId: string, params: CreateNotificationParams): Promise<void> {

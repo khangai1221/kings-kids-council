@@ -3,7 +3,7 @@ import { formatDistanceToNow } from "date-fns";
 import { CheckSquare, ClipboardList, FileText, CalendarDays, Megaphone, Lightbulb, ArrowRight } from "lucide-react";
 import { requireOnboardedUser } from "@/lib/auth/require";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -64,13 +64,11 @@ export default async function DashboardPage() {
       </section>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="flex items-center gap-2 text-base"><CheckSquare className="size-4 text-primary" /> Poll</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Card className="gap-3 py-4">
+          <CardContent className="space-y-2.5">
+            <p className="flex items-center gap-2 text-sm font-semibold text-foreground"><CheckSquare className="size-4 text-primary" /> Poll</p>
             {poll.data ? (
-              <div className="space-y-2">
+              <>
                 <p className="font-medium text-foreground">{poll.data.title}</p>
                 {poll.data.closes_at ? (
                   <p className="text-xs text-muted-foreground">
@@ -78,36 +76,32 @@ export default async function DashboardPage() {
                   </p>
                 ) : null}
                 <Button asChild size="sm"><Link href={`/polls/${poll.data.slug}`}>Vote now</Link></Button>
-              </div>
+              </>
             ) : (
               <p className="text-sm text-muted-foreground">No active polls right now.</p>
             )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="flex items-center gap-2 text-base"><ClipboardList className="size-4 text-primary" /> Survey</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Card className="gap-3 py-4">
+          <CardContent className="space-y-2.5">
+            <p className="flex items-center gap-2 text-sm font-semibold text-foreground"><ClipboardList className="size-4 text-primary" /> Survey</p>
             {survey.data ? (
-              <div className="space-y-2">
+              <>
                 <p className="font-medium text-foreground">{survey.data.title}</p>
                 <Button asChild size="sm" variant="outline"><Link href={`/surveys/${survey.data.slug}`}>Respond</Link></Button>
-              </div>
+              </>
             ) : (
               <p className="text-sm text-muted-foreground">No open surveys right now.</p>
             )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="flex items-center gap-2 text-base"><FileText className="size-4 text-primary" /> Your application</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Card className="gap-3 py-4">
+          <CardContent className="space-y-2.5">
+            <p className="flex items-center gap-2 text-sm font-semibold text-foreground"><FileText className="size-4 text-primary" /> Your application</p>
             {submission.data ? (
-              <div className="space-y-2">
+              <>
                 <p className="font-medium text-foreground">
                   {(submission.data as unknown as { application_positions: { title: string } }).application_positions?.title}
                 </p>
@@ -117,7 +111,7 @@ export default async function DashboardPage() {
                     <Link href={`/applications/submissions/${submission.data.id}`}>View application</Link>
                   </Button>
                 </div>
-              </div>
+              </>
             ) : (
               <p className="text-sm text-muted-foreground">You have not started an application yet.</p>
             )}

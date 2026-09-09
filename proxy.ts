@@ -29,18 +29,31 @@ function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
-export default clerkMiddleware(async (authFn, request) => {
-  const { userId } = await authFn();
-  const { pathname } = request.nextUrl;
+export default clerkMiddleware(
+  async (authFn, request) => {
+    const { userId } = await authFn();
+    const { pathname } = request.nextUrl;
 
-  if (!userId && !isPublicPath(pathname)) {
-    const signInUrl = new URL("/sign-in", request.url);
-    signInUrl.searchParams.set("redirect_url", pathname);
-    return NextResponse.redirect(signInUrl);
-  }
+    if (!userId && !isPublicPath(pathname)) {
+      // Send unauthenticated visitors to sign-up first (this portal is rolling
+      // out to a whole school of new accounts); the sign-up screen has a
+      // prominent "already have an account? sign in" link. The original
+      // destination is preserved so post-auth they land where they intended.
+      const signUpUrl = new URL("/sign-up", request.url);
+      signUpUrl.searchParams.set("redirect_url", pathname);
+      return NextResponse.redirect(signUpUrl);
+    }
 
-  return NextResponse.next();
-});
+    return NextResponse.next();
+  },
+  // Dev-only: tolerate a larger gap between this machine's clock and Clerk's.
+  // A local Windows clock that drifts even ~10s makes freshly issued session
+  // tokens look "issued in the future", which Clerk rejects → an infinite
+  // sign-in redirect loop. Hosted runtimes (Vercel) are NTP-synced so the
+  // default 5s tolerance is kept in production. The real fix is still to sync
+  // the dev machine's clock.
+  process.env.NODE_ENV === "production" ? undefined : { clockSkewInMs: 60_000 },
+);
 
 export const config = {
   matcher: [

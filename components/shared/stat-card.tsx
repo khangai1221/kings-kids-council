@@ -21,10 +21,10 @@ const TONE_CLASSES: Record<NonNullable<StatCardProps["tone"]>, string> = {
 
 export function StatCard({ label, value, helperText, icon: Icon, tone = "neutral", className }: StatCardProps) {
   return (
-    <Card className={cn(className)}>
-      <CardContent className="flex items-start justify-between gap-4 p-5">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+    <Card className={cn("gap-0 py-0", className)}>
+      <CardContent className="flex items-start justify-between gap-3 p-4">
+        <div className="min-w-0">
+          <p className="text-sm font-medium leading-tight text-muted-foreground">{label}</p>
           <p className={cn("mt-1 text-2xl font-semibold tabular-nums", TONE_CLASSES[tone])}>{value}</p>
           {helperText ? <p className="mt-1 text-xs text-muted-foreground">{helperText}</p> : null}
         </div>

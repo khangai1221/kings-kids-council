@@ -27,9 +27,9 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
 
 export function StatCardsSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       {Array.from({ length: count }).map((_, index) => (
-        <Skeleton key={index} className="h-24 w-full rounded-lg" />
+        <Skeleton key={index} className="h-[88px] w-full rounded-xl" />
       ))}
     </div>
   );

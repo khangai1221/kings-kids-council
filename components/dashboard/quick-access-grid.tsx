@@ -25,14 +25,14 @@ export const QUICK_ACCESS_TILES: QuickAccessTile[] = [
 
 export function QuickAccessGrid({ tiles = QUICK_ACCESS_TILES }: { tiles?: QuickAccessTile[] }) {
   return (
-    <div className="grid grid-cols-4 gap-3 sm:grid-cols-4">
+    <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 sm:gap-3">
       {tiles.map((tile) => {
         const Icon = NAV_ICONS[tile.icon];
         return (
           <Link
             key={tile.href}
             href={tile.href}
-            className="flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-3 text-center transition-colors hover:bg-secondary/50"
+            className="flex min-h-[92px] flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-3 text-center transition-colors hover:border-primary/30 hover:bg-secondary/50"
           >
             <span className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Icon className="size-5" aria-hidden="true" />

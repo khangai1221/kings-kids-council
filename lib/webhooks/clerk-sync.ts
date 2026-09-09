@@ -16,6 +16,7 @@ export interface ClerkUserWebhookPayload {
   first_name: string | null;
   last_name: string | null;
   image_url: string | null;
+  unsafe_metadata?: Record<string, unknown> | null;
 }
 
 function getPrimaryVerifiedEmail(user: ClerkUserWebhookPayload): string | null {
@@ -57,6 +58,10 @@ export async function syncClerkUserCreatedOrUpdated(user: ClerkUserWebhookPayloa
 
   const nextStatus = !existing ? "active" : existing.account_status === "suspended" ? "active" : existing.account_status;
 
+  // Only stamp the staff-access request on the first sync for this account
+  // (the person picked "Teacher / staff" at sign-up). Never on `user.updated`.
+  const staffRequested = !existing && user.unsafe_metadata?.staffAccessRequested === true;
+
   await admin.from("profiles").upsert(
     {
       clerk_user_id: user.id,
@@ -66,6 +71,7 @@ export async function syncClerkUserCreatedOrUpdated(user: ClerkUserWebhookPayloa
       display_name: displayName,
       avatar_url: user.image_url,
       account_status: nextStatus,
+      ...(staffRequested ? { staff_access_requested_at: new Date().toISOString() } : {}),
     },
     { onConflict: "clerk_user_id" },
   );

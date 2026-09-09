@@ -1,6 +1,6 @@
-import { SignUp } from "@clerk/nextjs";
-import { AuthShell, authAppearance } from "@/components/auth/auth-shell";
+import { AuthShell } from "@/components/auth/auth-shell";
 import { getSiteSettings } from "@/lib/settings/service";
+import { SignUpRolePicker } from "@/app/sign-up/[[...sign-up]]/sign-up-role-picker";
 
 export const metadata = { title: "Create your account" };
 
@@ -17,7 +17,7 @@ export default async function SignUpPage() {
         </>
       }
     >
-      <SignUp appearance={authAppearance(settings.primary_color)} />
+      <SignUpRolePicker primaryColor={settings.primary_color} />
     </AuthShell>
   );
 }

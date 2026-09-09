@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { subDays, startOfDay, format } from "date-fns";
-import { Users, CalendarDays, CheckSquare, Trophy, ClipboardCheck, Lightbulb, ArrowRight, CircleCheck } from "lucide-react";
+import { Users, CalendarDays, CheckSquare, Trophy, ClipboardCheck, Lightbulb, ArrowRight, CircleCheck, UserPlus } from "lucide-react";
 import { requireStaffAccess } from "@/lib/auth/require";
 import { isAdminTier } from "@/lib/permissions/roles";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -49,6 +49,7 @@ export default async function AdminDashboardPage() {
     { count: openCompetitions },
     { count: unreadSuggestions },
     { count: pendingReviews },
+    { count: staffRequests },
     { data: recentAudit },
     { data: recentAnnouncements },
     { data: recentPolls },
@@ -67,6 +68,7 @@ export default async function AdminDashboardPage() {
       : Promise.resolve({ count: 0 }),
     supabase.from("suggestions").select("id", { count: "exact", head: true }).eq("status", "received"),
     supabase.from("review_assignments").select("id", { count: "exact", head: true }).in("status", ["assigned", "in_progress"]),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).not("staff_access_requested_at", "is", null).eq("role", "student"),
     supabase.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(6),
     supabase.from("announcements").select("id, title, slug, status, publish_at").order("publish_at", { ascending: false }).limit(5),
     supabase.from("polls").select("id, title, status").order("created_at", { ascending: false }).limit(5),
@@ -112,6 +114,13 @@ export default async function AdminDashboardPage() {
       icon: Lightbulb,
       label: "New suggestions to triage",
       value: unreadSuggestions ?? 0,
+    },
+    {
+      show: (staffRequests ?? 0) > 0,
+      href: "/admin/users?request=staff",
+      icon: UserPlus,
+      label: "Staff access requests to review",
+      value: staffRequests ?? 0,
     },
   ].filter((item) => item.show);
 

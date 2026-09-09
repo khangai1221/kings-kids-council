@@ -36,6 +36,24 @@ export async function updateUserRole(userId: string, role: Role): Promise<Action
   });
 }
 
+/**
+ * Clears a pending "Teacher / staff" sign-up request without granting any
+ * role — used when an admin decides the person stays a regular student.
+ * Granting a staff role instead clears the flag automatically (the
+ * enforce_profile_field_protection trigger, migration 0028).
+ */
+export async function dismissStaffAccessRequest(userId: string): Promise<ActionResult<undefined>> {
+  return runAction(async () => {
+    await assertCapability("users.manage");
+    const supabase = createSupabaseServerClient();
+    const { error } = await supabase.from("profiles").update({ staff_access_requested_at: null }).eq("id", userId);
+    if (error) throw new Error(error.message);
+    await recordAuditEvent({ action: "user.staff_request_dismissed", resourceType: "profile", resourceId: userId });
+    revalidatePath("/admin/users");
+    return undefined;
+  });
+}
+
 export async function updateUserAccountStatus(userId: string, status: AccountStatus): Promise<ActionResult<undefined>> {
   return runAction(async () => {
     await assertCapability("users.manage");

@@ -4,10 +4,24 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { ROLES, ROLE_LABELS } from "@/lib/permissions/roles";
 import { ACCOUNT_STATUSES } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
-export function UserFilters({ search, role, status }: { search?: string; role?: string; status?: string }) {
+export function UserFilters({
+  search,
+  role,
+  status,
+  staffRequests,
+  staffRequestCount = 0,
+}: {
+  search?: string;
+  role?: string;
+  status?: string;
+  staffRequests?: boolean;
+  staffRequestCount?: number;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -49,6 +63,21 @@ export function UserFilters({ search, role, status }: { search?: string; role?: 
           {ACCOUNT_STATUSES.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
         </SelectContent>
       </Select>
+      {staffRequestCount > 0 || staffRequests ? (
+        <Button
+          type="button"
+          variant={staffRequests ? "default" : "outline"}
+          onClick={() => setParam("request", staffRequests ? "" : "staff")}
+          className={cn("gap-1.5", !staffRequests && "border-warning/40 text-warning hover:text-warning")}
+        >
+          Staff requests
+          {staffRequestCount > 0 ? (
+            <span className="rounded-full bg-warning px-1.5 text-xs font-semibold text-warning-foreground">
+              {staffRequestCount}
+            </span>
+          ) : null}
+        </Button>
+      ) : null}
     </div>
   );
 }

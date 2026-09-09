@@ -1,5 +1,6 @@
 import { SignIn } from "@clerk/nextjs";
-import { AuthShell, authAppearance } from "@/components/auth/auth-shell";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { authAppearance } from "@/components/auth/auth-appearance";
 import { getSiteSettings } from "@/lib/settings/service";
 
 export const metadata = { title: "Sign in" };

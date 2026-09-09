@@ -39,6 +39,9 @@ async function syncProfileOnFirstLogin(clerkUserId: string): Promise<ProfileRow 
   }
 
   const displayName = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ").trim() || email;
+  // Set at sign-up by SignUpRolePicker when the person chose "Teacher / staff".
+  // Records the request only; the role stays `student` until an admin acts.
+  const staffRequested = clerkUser.unsafeMetadata?.staffAccessRequested === true;
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
     .from("profiles")
@@ -51,6 +54,7 @@ async function syncProfileOnFirstLogin(clerkUserId: string): Promise<ProfileRow 
         display_name: displayName,
         avatar_url: clerkUser.imageUrl,
         account_status: "active",
+        ...(staffRequested ? { staff_access_requested_at: new Date().toISOString() } : {}),
       },
       { onConflict: "clerk_user_id" },
     )

@@ -98,6 +98,7 @@ export type ProfileRow = {
   accepted_privacy_at: string | null;
   notification_in_app_default: boolean;
   notification_push_default: boolean;
+  staff_access_requested_at: string | null;
   created_at: string;
   updated_at: string;
   last_active_at: string | null;

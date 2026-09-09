@@ -49,7 +49,10 @@ export async function generateViewport(): Promise<Viewport> {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${geistMono.variable} h-full`}>
-      <body className="flex min-h-full flex-col antialiased">
+      {/* suppressHydrationWarning: browser extensions (password managers,
+          Grammarly, etc.) inject attributes onto <body> before React
+          hydrates, which otherwise logs a hydration-mismatch warning. */}
+      <body suppressHydrationWarning className="flex min-h-full flex-col antialiased">
         <ClerkProvider afterSignOutUrl="/sign-in">
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             <TooltipProvider delayDuration={200}>

@@ -25,7 +25,9 @@ const clerkFrontendApi = (() => {
 
 const contentSecurityPolicy = [
   `default-src 'self'`,
-  `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com ${clerkFrontendApi ? `https://${clerkFrontendApi}` : ""}`,
+  // https://www.gstatic.com — the Firebase Cloud Messaging service worker
+  // (app/firebase-messaging-sw.js) importScripts() the firebase compat SDK from there.
+  `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com https://www.gstatic.com ${clerkFrontendApi ? `https://${clerkFrontendApi}` : ""}`,
   `style-src 'self' 'unsafe-inline' https://fonts.cloudflare.com`,
   `img-src 'self' data: blob: https://img.clerk.com https://challenges.cloudflare.com ${supabaseHostname ? `https://${supabaseHostname}` : ""}`,
   `font-src 'self' data: https://fonts.cloudflare.com`,

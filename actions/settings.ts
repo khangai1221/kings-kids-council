@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { assertCapability } from "@/lib/auth/require";
 import { runAction, type ActionResult } from "@/lib/actions/result";
 import { recordAuditEvent } from "@/lib/audit/log";
@@ -40,6 +40,9 @@ export async function updateSiteSettings(input: unknown): Promise<ActionResult<u
     if (error) throw new Error(error.message);
 
     await recordAuditEvent({ action: "site_settings.updated", resourceType: "site_settings", beforeState: before, afterState: data });
+    // { expire: 0 }, not the recommended "max" profile: an admin saving
+    // settings expects to see the change immediately, not stale-while-revalidate.
+    revalidateTag("site-settings", { expire: 0 });
     revalidatePath("/", "layout");
     return undefined;
   });
@@ -74,6 +77,7 @@ export async function uploadPortalLogo(formData: FormData): Promise<ActionResult
       resourceType: "site_settings",
       afterState: { portal_logo_url: publicUrl.publicUrl },
     });
+    revalidateTag("site-settings", { expire: 0 });
     revalidatePath("/", "layout");
     return { url: publicUrl.publicUrl };
   });

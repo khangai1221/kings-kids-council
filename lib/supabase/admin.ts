@@ -15,6 +15,9 @@ let cachedClient: ReturnType<typeof createClient<Database>> | undefined;
  *   - lib/webhooks/clerk.ts (no user session exists yet during sync)
  *   - lib/notifications/push-dispatch.ts (reads FCM tokens to fan out a push
  *     that an admin action already authorized via the request-scoped client)
+ *   - lib/settings/service.ts (inside unstable_cache, which forbids
+ *     cookies/auth() entirely; safe because site_settings is granted
+ *     `select` to the `anon` role under RLS — nothing gained by bypassing it)
  *
  * Do not import this into a Client Component or reach for it as a shortcut
  * to bypass an RLS error — fix the policy or use the appropriate

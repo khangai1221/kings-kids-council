@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { unstable_cache } from "next/cache";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { SiteSettingsRow } from "@/types/database";
 
 export type SiteSettings = SiteSettingsRow;
@@ -37,19 +38,38 @@ const FALLBACK_SETTINGS: SiteSettings = {
 };
 
 /**
+ * Fetches the singleton row with the service-role client (no cookies/auth()
+ * involved — required inside unstable_cache, which forbids request-scoped
+ * data sources) and caches it across requests/users for a minute. This is
+ * safe: `site_settings` is readable by `anon` under RLS (site_settings_select_all
+ * `using (true)`), so the admin client reveals nothing a visitor couldn't
+ * already select themselves. Almost every page calls this, so turning a
+ * per-request DB round trip into a once-a-minute one is the single biggest
+ * lever on response time available here.
+ */
+const fetchSiteSettings = unstable_cache(
+  async (): Promise<SiteSettings | null> => {
+    const supabase = createSupabaseAdminClient();
+    const { data, error } = await supabase.from("site_settings").select("*").eq("singleton", true).maybeSingle();
+    if (error) {
+      console.error("Failed to load site settings, using fallback", error);
+      return null;
+    }
+    return data;
+  },
+  ["site-settings"],
+  { tags: ["site-settings"], revalidate: 60 },
+);
+
+/**
  * Typed settings accessor — the only place in the app that should read
  * site_settings directly, so callers never hand-parse arbitrary JSON.
  * Falls back to sensible defaults if the singleton row is unreachable
- * (e.g. a mid-migration state) rather than throwing on every page.
+ * (e.g. a mid-migration state) rather than throwing on every page. The
+ * outer `cache()` just dedupes repeat calls within a single request on top
+ * of the cross-request cache above.
  */
 export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
-  const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase.from("site_settings").select("*").eq("singleton", true).maybeSingle();
-
-  if (error || !data) {
-    if (error) console.error("Failed to load site settings, using fallback", error);
-    return FALLBACK_SETTINGS;
-  }
-
-  return data;
+  const data = await fetchSiteSettings();
+  return data ?? FALLBACK_SETTINGS;
 });
